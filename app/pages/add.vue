@@ -62,9 +62,9 @@ async function remove() {
 </script>
 
 <template>
-  <form class="space-y-5" @submit.prevent="save">
+  <form class="mx-auto max-w-lg space-y-5 md:card md:p-6" @submit.prevent="save">
     <header class="flex items-center justify-between">
-      <NuxtLink to="/" class="-ml-2 rounded-full px-2 py-1 text-accent">Cancel</NuxtLink>
+      <NuxtLink to="/" class="-ml-2 rounded-full px-2 py-1 text-accent">Cancel <kbd class="ml-1 hidden text-[11px] text-ink-3 md:inline">Esc</kbd></NuxtLink>
       <h1 class="font-semibold">{{ editingId ? 'Edit' : 'New' }} {{ kind }}</h1>
       <button type="submit" class="-mr-2 rounded-full px-2 py-1 font-semibold text-accent">Save</button>
     </header>
@@ -82,7 +82,7 @@ async function remove() {
       </button>
     </div>
 
-    <label class="block rounded-3xl bg-card p-5 text-center ring-1 ring-line">
+    <label class="block card p-5 text-center">
       <span class="text-sm text-ink-2">Amount</span>
       <input
         ref="amountInput"
@@ -113,7 +113,7 @@ async function remove() {
       </div>
     </fieldset>
 
-    <div class="divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">
+    <div class="divide-y divide-line card overflow-hidden">
       <label class="flex items-center justify-between gap-3 px-4 py-3">
         <span class="text-ink-2">Date</span>
         <input v-model="date" type="date" required class="bg-transparent text-right outline-none">

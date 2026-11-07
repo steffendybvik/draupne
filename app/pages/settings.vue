@@ -60,8 +60,8 @@ async function restore() {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <h1 class="text-2xl font-semibold">Settings</h1>
+  <div class="mx-auto max-w-2xl space-y-6">
+    <h1 class="text-2xl font-semibold tracking-tight md:text-3xl">Settings</h1>
 
     <section>
       <h2 class="mb-2 px-1 text-sm font-medium text-ink-2">Currency</h2>
@@ -80,14 +80,14 @@ async function restore() {
 
     <section>
       <h2 class="mb-2 px-1 text-sm font-medium text-ink-2">Your data</h2>
-      <div class="space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
+      <div class="space-y-3 card p-4">
         <p class="text-sm text-ink-2">
           {{ counts.transactions }} transactions in {{ counts.categories }} categories, stored only on this device.
           Export a backup now and then, and import it to move to another device.
         </p>
         <div class="grid grid-cols-2 gap-2">
           <button class="rounded-xl bg-accent py-2.5 text-sm font-semibold text-white dark:text-black" @click="download">Export backup</button>
-          <button class="rounded-xl bg-surface py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="fileInput?.click()">Import backup</button>
+          <button class="rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="fileInput?.click()">Import backup</button>
         </div>
         <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="pick">
 

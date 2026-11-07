@@ -56,10 +56,13 @@ async function remove(id: number) {
 </script>
 
 <template>
-  <div class="space-y-5">
-    <MonthPicker />
+  <div class="mx-auto max-w-3xl space-y-5">
+    <div class="md:flex md:items-end md:justify-between md:gap-3">
+      <h1 class="hidden text-3xl font-semibold tracking-tight md:block">Budgets</h1>
+      <div class="md:w-72"><MonthPicker /></div>
+    </div>
 
-    <section v-if="totalBudget" class="rounded-3xl bg-card p-5 shadow-sm ring-1 ring-line">
+    <section v-if="totalBudget" class="card p-5">
       <p class="text-sm text-ink-2">Budgeted categories</p>
       <p class="mt-1 text-4xl font-semibold tracking-tight">{{ moneyRound(Math.abs(totalBudget - budgetedSpent)) }}</p>
       <p class="text-sm text-ink-2">{{ totalBudget - budgetedSpent < 0 ? 'over budget' : 'left to spend' }}</p>
@@ -70,14 +73,14 @@ async function remove(id: number) {
         Plus {{ moneyRound(spent - budgetedSpent) }} in categories without a budget.
       </p>
     </section>
-    <p v-else class="rounded-3xl bg-card p-5 text-sm text-ink-2 ring-1 ring-line">
+    <p v-else class="card p-5 text-sm text-ink-2">
       Give a category a monthly budget to see how you're tracking against it. Tap any category below.
     </p>
 
     <template v-for="group in [{ title: 'Budgets', rows: budgeted }, { title: 'No budget', rows: unbudgeted }]" :key="group.title">
       <section v-if="group.rows.length">
         <h2 class="mb-2 px-1 text-sm font-medium text-ink-2">{{ group.title }}</h2>
-        <ul class="divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">
+        <ul class="divide-y divide-line card overflow-hidden">
           <li v-for="row in group.rows" :key="row.category.id">
             <CategoryEditor
               v-if="editing === row.category.id"
@@ -88,7 +91,7 @@ async function remove(id: number) {
               @cancel="editing = null"
               @delete="remove(row.category.id)"
             />
-            <button v-else class="w-full px-4 py-3 text-left active:bg-surface" @click="open(row.category)">
+            <button v-else class="w-full px-4 py-3 text-left hover:bg-raised active:bg-raised" @click="open(row.category)">
               <span class="flex items-center justify-between gap-3">
                 <span class="truncate font-medium">{{ row.category.emoji }} {{ row.category.name }}</span>
                 <span v-if="!row.category.budget" class="shrink-0 text-sm tabular-nums text-ink-2">{{ moneyRound(row.spent) }}</span>
@@ -104,7 +107,7 @@ async function remove(id: number) {
 
     <section>
       <h2 class="mb-2 px-1 text-sm font-medium text-ink-2">Income categories</h2>
-      <ul class="divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">
+      <ul class="divide-y divide-line card overflow-hidden">
         <li v-for="c in incomeCategories" :key="c.id">
           <CategoryEditor
             v-if="editing === c.id"
@@ -115,19 +118,19 @@ async function remove(id: number) {
             @cancel="editing = null"
             @delete="remove(c.id)"
           />
-          <button v-else class="w-full px-4 py-3 text-left font-medium active:bg-surface" @click="open(c)">
+          <button v-else class="w-full px-4 py-3 text-left font-medium hover:bg-raised active:bg-raised" @click="open(c)">
             {{ c.emoji }} {{ c.name }}
           </button>
         </li>
       </ul>
     </section>
 
-    <div v-if="editing === 'new'" class="overflow-hidden rounded-2xl bg-card ring-1 ring-line">
+    <div v-if="editing === 'new'" class="card overflow-hidden">
       <CategoryEditor v-model="form" is-new @save="save" @cancel="editing = null" />
     </div>
     <div v-else class="grid grid-cols-2 gap-2">
-      <button class="rounded-2xl bg-card py-3 text-sm font-medium text-accent ring-1 ring-line" @click="open(undefined, 'expense')">+ Expense category</button>
-      <button class="rounded-2xl bg-card py-3 text-sm font-medium text-accent ring-1 ring-line" @click="open(undefined, 'income')">+ Income category</button>
+      <button class="card py-3 text-sm font-medium text-accent transition hover:bg-raised" @click="open(undefined, 'expense')">+ Expense category</button>
+      <button class="card py-3 text-sm font-medium text-accent transition hover:bg-raised" @click="open(undefined, 'income')">+ Income category</button>
     </div>
   </div>
 </template>

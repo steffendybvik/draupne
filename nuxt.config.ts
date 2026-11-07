@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   },
 
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: { lang: 'en' },
       title: 'Draupne',
@@ -37,6 +38,15 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
+      id: '/',
+      scope: '/',
+      // On desktop the app draws its own title bar; elsewhere it's a plain standalone window.
+      display_override: ['window-controls-overlay', 'standalone'],
+      launch_handler: { client_mode: 'focus-existing' },
+      shortcuts: [
+        { name: 'Add transaction', short_name: 'Add', url: '/add', icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }] },
+        { name: 'Insights', url: '/insights', icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }] },
+      ],
       name: 'Draupne',
       short_name: 'Draupne',
       description: 'Personal finance, month by month.',

@@ -29,8 +29,14 @@ export function useSettings() {
     maximumFractionDigits: 0,
   }))
 
+  const axis = computed(() => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }))
+
   return {
     settings,
+    /** Compact, no currency, for axis ticks: 12K. */
+    moneyAxis: (minor: number) => axis.value.format(Math.round(minor / 100)),
+    /** Signed and rounded, for profit/loss: +1 234 kr / −560 kr. */
+    moneySigned: (minor: number) => (minor > 0 ? '+' : minor < 0 ? '−' : '') + compact.value.format(Math.abs(Math.round(minor / 100))),
     /** Minor units → "kr 1 234,50" in the device's locale. */
     money: (minor: number) => formatter.value.format(minor / 100),
     /** Rounded to whole units, for headline figures. */

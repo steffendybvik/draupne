@@ -2,14 +2,15 @@
 
 /* Light/dark follow the device. Tokens are roles, not raw colors. */
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
+  --font-sans: "Inter var", ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
 
-  --color-surface: #fcfcfb;
-  --color-card: #ffffff;
+  --color-surface: #f4f4f1;   /* page plane */
+  --color-card: #ffffff;      /* card / chart surface */
+  --color-raised: #f9f9f7;    /* inset tiles inside a card */
   --color-line: #e7e6e2;
   --color-ink: #0b0b0b;
   --color-ink-2: #52514e;
-  --color-ink-3: #8a8984;
+  --color-ink-3: #898781;
 
   --color-accent: #1c5cab;
   --color-accent-soft: #cde2fb;
@@ -20,16 +21,30 @@
   --color-good-ink: #006300;
   --color-warning: #fab219;
   --color-critical: #d03b3b;
+
+  /* Charts. Categorical slots in fixed order (validated light on #fff, dark on #1a1a19). */
+  --color-s1: #2a78d6;
+  --color-s2: #eb6834;
+  --color-s3: #1baf7a;
+  --color-s4: #eda100;
+  --color-s5: #e87ba4;
+  --color-other: #c3c2b7;     /* "Other" and de-emphasis */
+  --color-grid: #e1e0d9;
+  --color-axis: #c3c2b7;
+  /* Diverging poles for profit / loss. */
+  --color-pos: #2a78d6;
+  --color-neg: #e34948;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-surface: #121211;
+    --color-surface: #0d0d0d;
     --color-card: #1a1a19;
+    --color-raised: #222220;
     --color-line: #2c2c2a;
     --color-ink: #f0efec;
     --color-ink-2: #c3c2b7;
-    --color-ink-3: #8f8e86;
+    --color-ink-3: #898781;
 
     --color-accent: #6da7ec;
     --color-accent-soft: #184f95;
@@ -37,6 +52,27 @@
     --color-track: #1f3350;
 
     --color-good-ink: #4cc54c;
+
+    --color-s1: #3987e5;
+    --color-s2: #d95926;
+    --color-s3: #199e70;
+    --color-s4: #c98500;
+    --color-s5: #d55181;
+    --color-other: #57564f;
+    --color-grid: #2c2c2a;
+    --color-axis: #383835;
+    --color-pos: #3987e5;
+    --color-neg: #e66767;
+  }
+}
+
+/* A card: white plane, hairline ring, soft lift. */
+@utility card {
+  border-radius: 1.25rem;
+  background: var(--color-card);
+  box-shadow: 0 0 0 1px rgb(11 11 11 / 0.06), 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px -12px rgb(11 11 11 / 0.08);
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08);
   }
 }
 
@@ -44,7 +80,9 @@ html {
   background: var(--color-surface);
   color: var(--color-ink);
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
   color-scheme: light dark;
+  font-feature-settings: "cv11", "ss01";
 }
 
 body {
@@ -53,3 +91,34 @@ body {
 
 .pt-safe { padding-top: max(env(safe-area-inset-top), 0.75rem); }
 .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+
+/*
+ * Installed on desktop with window-controls-overlay, the app draws its own title bar:
+ * a drag region across the space the OS leaves beside the window buttons.
+ */
+.titlebar {
+  display: none;
+}
+@media (display-mode: window-controls-overlay) {
+  .titlebar {
+    display: flex;
+    position: fixed;
+    top: env(titlebar-area-y, 0);
+    left: env(titlebar-area-x, 0);
+    width: env(titlebar-area-width, 100%);
+    height: env(titlebar-area-height, 2.25rem);
+    z-index: 40;
+    app-region: drag;
+    -webkit-app-region: drag;
+  }
+  .titlebar button, .titlebar a { app-region: no-drag; -webkit-app-region: no-drag; }
+  .below-titlebar { padding-top: env(titlebar-area-height, 2.25rem); }
+}
+
+/* Page changes: a short fade so the app feels continuous. */
+.page-enter-active, .page-leave-active { transition: opacity 120ms ease, transform 120ms ease; }
+.page-enter-from { opacity: 0; transform: translateY(4px); }
+.page-leave-to { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active, .page-leave-active { transition: none; }
+}
