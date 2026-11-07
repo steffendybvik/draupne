@@ -10,7 +10,7 @@ export interface CategoryTotal {
 export function useMonthData() {
   const { month } = useMonth()
 
-  const categories = useLiveQuery(null, () => db.categories.orderBy('position').toArray(), [] as Category[])
+  const categories = useLiveQuery(null, () => listCategories(), [] as Category[])
   const transactions = useLiveQuery<Transaction[], string>(month, (m) => transactionsIn(m), [] as Transaction[])
 
   const categoryById = computed(() => new Map(categories.value.map((c) => [c.id, c])))

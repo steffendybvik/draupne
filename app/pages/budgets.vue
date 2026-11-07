@@ -4,11 +4,7 @@ import type { Category, CategoryKind } from '~/utils/db'
 const { categories, byCategory, spent } = useMonthData()
 const { moneyRound } = useSettings()
 
-const usage = useLiveQuery(null, async () => {
-  const counts = new Map<number, number>()
-  await db.transactions.each((t) => counts.set(t.categoryId, (counts.get(t.categoryId) ?? 0) + 1))
-  return counts
-}, new Map<number, number>())
+const usage = useLiveQuery(null, () => categoryUsage(), new Map<number, number>())
 
 const budgeted = computed(() => byCategory.value.filter((r) => r.category.budget))
 const unbudgeted = computed(() => byCategory.value.filter((r) => !r.category.budget))
@@ -40,17 +36,16 @@ async function save() {
     budget: form.kind === 'expense' ? parseAmount(form.budget) : null,
   }
   if (editing.value === 'new') {
-    const last = await db.categories.orderBy('position').last()
-    await db.categories.add({ ...data, position: (last?.position ?? 0) + 1 } as never)
+    await addCategory(data)
   } else if (editing.value) {
-    await db.categories.update(editing.value, data)
+    await updateCategory(editing.value, data)
   }
   editing.value = null
 }
 
 async function remove(id: number) {
   if (!confirmDelete.value) return (confirmDelete.value = true)
-  await db.categories.delete(id)
+  await deleteCategory(id)
   editing.value = null
 }
 </script>

@@ -26,9 +26,9 @@ export const isSaving = (a?: Account) => a?.type === 'savings' || a?.type === 'i
 
 /** Accounts with balances, investment values and net worth, kept live from IndexedDB. */
 export function useAccounts() {
-  const accounts = useLiveQuery(null, () => db.accounts.orderBy('position').toArray(), [] as Account[])
-  const valuations = useLiveQuery(null, () => db.valuations.orderBy('date').toArray(), [] as Valuation[])
-  const all = useLiveQuery(null, () => db.transactions.toArray(), [] as Transaction[])
+  const accounts = useLiveQuery(null, () => listAccounts(), [] as Account[])
+  const valuations = useLiveQuery(null, () => listValuations(), [] as Valuation[])
+  const all = useLiveQuery(null, () => listTransactions(), [] as Transaction[])
   const accountById = computed(() => new Map(accounts.value.map((a) => [a.id, a])))
 
   /** Every account as it stood at the end of `date` (inclusive). */

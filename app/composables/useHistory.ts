@@ -32,7 +32,7 @@ export function daysIn(month: string) {
 
 /** All transactions, aggregated for trends: per month, per year, per day within a month. */
 export function useHistory() {
-  const all = useLiveQuery(null, () => db.transactions.toArray(), [] as Transaction[])
+  const all = useLiveQuery(null, () => listTransactions(), [] as Transaction[])
 
   const byMonth = computed(() => {
     const map = new Map<string, MonthTotals>()

@@ -1,30 +1,31 @@
-import { liveQuery } from 'dexie'
 import type { WatchSource } from 'vue'
 
 /**
- * A Dexie query as a Vue ref that updates whenever the tables it reads change.
- * `source` is what the query depends on (like the month); it re-subscribes when that changes.
- * Dexie runs the query outside Vue's tracking, so the dependency has to be given explicitly.
+ * A database query as a Vue ref. It re-runs when `source` (what it depends on, like the month) changes
+ * and after every write to the database. Only the newest run's result is kept.
  */
 export function useLiveQuery<T, S = null>(
   source: WatchSource<S> | null,
-  query: (input: S) => T | Promise<T>,
+  query: (input: S) => Promise<T>,
   initial: T,
 ) {
   const value = shallowRef(initial) as Ref<T>
-  let sub: { unsubscribe(): void } | undefined
+  let token = 0
 
-  const subscribe = (input: S) => {
-    sub?.unsubscribe()
-    sub = liveQuery(() => query(input)).subscribe({
-      next: (v) => { value.value = v },
-      error: (e) => console.error('[draupne] query failed', e),
-    })
+  const refresh = async (input: S) => {
+    const mine = ++token
+    try {
+      const result = await query(input)
+      if (mine === token) value.value = result
+    } catch (e) {
+      console.error('[draupne] query failed', e)
+    }
   }
 
-  if (source) watch(source, subscribe, { immediate: true })
-  else subscribe(null as S)
-
-  onScopeDispose(() => sub?.unsubscribe())
+  watch(
+    () => [source ? toValue(source) : null, dbVersion.value] as const,
+    ([input]) => refresh(input as S),
+    { immediate: true },
+  )
   return value
 }

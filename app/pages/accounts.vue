@@ -28,14 +28,7 @@ const sorted = computed(() => [...today.value].sort((a, b) =>
 const typeLabel = (type: AccountType) => ACCOUNT_TYPES.find((t) => t.type === type)?.label ?? type
 
 // Usage per account, so one with transactions can't be deleted.
-const usage = useLiveQuery(null, async () => {
-  const counts = new Map<number, number>()
-  await db.transactions.each((t) => {
-    counts.set(t.accountId, (counts.get(t.accountId) ?? 0) + 1)
-    if (t.toAccountId) counts.set(t.toAccountId, (counts.get(t.toAccountId) ?? 0) + 1)
-  })
-  return counts
-}, new Map<number, number>())
+const usage = useLiveQuery(null, () => accountUsage(), new Map<number, number>())
 
 // Editing: one account at a time, or a new one.
 const editing = ref<number | 'new' | null>(null)
@@ -55,19 +48,15 @@ async function save() {
   if (!name) return
   const data = { name, emoji: form.emoji.trim() || '🏦', type: form.type, opening: parseAmount(form.opening) ?? 0 }
   if (editing.value === 'new') {
-    const last = await db.accounts.orderBy('position').last()
-    await db.accounts.add({ ...data, position: (last?.position ?? 0) + 1 } as never)
+    await addAccount(data)
   } else if (editing.value) {
-    await db.accounts.update(editing.value, data)
+    await updateAccount(editing.value, data)
   }
   editing.value = null
 }
 async function remove(id: number) {
   if (!confirmDelete.value) return (confirmDelete.value = true)
-  await db.transaction('rw', db.accounts, db.valuations, async () => {
-    await db.valuations.where('accountId').equals(id).delete()
-    await db.accounts.delete(id)
-  })
+  await deleteAccount(id)
   editing.value = null
 }
 
@@ -83,9 +72,7 @@ async function saveValue(id: number) {
   const value = parseAmount(valueText.value)
   if (value === null) return
   const date = todayISO()
-  const existing = await db.valuations.where('accountId').equals(id).filter((v) => v.date === date).first()
-  if (existing) await db.valuations.update(existing.id, { value })
-  else await db.valuations.add({ accountId: id, date, value } as never)
+  await setValuation(id, date, value)
   valuing.value = null
 }
 </script>

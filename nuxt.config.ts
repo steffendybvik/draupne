@@ -10,6 +10,9 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    // SQLite's wasm build loads its own .wasm file; Vite's dependency pre-bundling breaks that.
+    optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
+    worker: { format: 'es' },
   },
 
   app: {
@@ -63,7 +66,9 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+      // The SQLite .wasm (~1 MB) is cached too, so the app opens offline.
+      globPatterns: ['**/*.{js,mjs,css,html,png,svg,ico,webmanifest,wasm}'],
+      maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
     },
     devOptions: { enabled: false },
   },

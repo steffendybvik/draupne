@@ -7,7 +7,7 @@ const { month } = useMonth()
 const { accounts } = useAccounts()
 
 const editingId = computed(() => (route.query.id ? Number(route.query.id) : null))
-const categories = useLiveQuery(null, () => db.categories.orderBy('position').toArray(), [] as Category[])
+const categories = useLiveQuery(null, () => listCategories(), [] as Category[])
 
 const kind = ref<Kind>(route.query.kind === 'transfer' ? 'transfer' : 'expense')
 const amountText = ref('')
@@ -32,7 +32,7 @@ watch(kind, () => {
 onMounted(async () => {
   accountId.value = await defaultAccountId()
   if (editingId.value) {
-    const t = await db.transactions.get(editingId.value)
+    const t = await getTransaction(editingId.value)
     if (!t) return router.replace('/')
     kind.value = t.kind
     await nextTick()
@@ -44,7 +44,7 @@ onMounted(async () => {
     note.value = t.note
   } else {
     // A transfer most often goes from spending to savings.
-    if (kind.value === 'transfer') toAccountId.value = (await db.accounts.where('type').equals('savings').first())?.id ?? null
+    if (kind.value === 'transfer') toAccountId.value = await firstAccountOfType('savings')
     amountInput.value?.focus()
   }
 })
@@ -71,8 +71,12 @@ async function save() {
     date: date.value,
     note: note.value.trim(),
   }
-  if (editingId.value) await db.transactions.update(editingId.value, data)
-  else await db.transactions.add({ ...data, createdAt: Date.now() } as never)
+  try {
+    if (editingId.value) await updateTransaction(editingId.value, data)
+    else await addTransaction(data)
+  } catch (e) {
+    return (error.value = `Couldn't save: ${(e as Error).message}`)
+  }
 
   month.value = date.value.slice(0, 7)
   router.push(route.query.back === 'accounts' ? '/accounts' : '/')
@@ -80,7 +84,7 @@ async function save() {
 
 async function remove() {
   if (!confirmDelete.value) return (confirmDelete.value = true)
-  await db.transactions.delete(editingId.value!)
+  await deleteTransaction(editingId.value!)
   router.push('/')
 }
 </script>
