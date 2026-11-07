@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, CircleStackIcon, SparklesIcon } from '@heroicons/vue/20/solid'
 const { settings } = useSettings()
 const message = ref('')
 const failed = ref(false)
@@ -117,10 +118,10 @@ async function replace() {
           </span>
         </p>
         <div class="grid grid-cols-2 gap-2">
-          <button class="rounded-xl bg-accent py-2.5 text-sm font-semibold text-white dark:text-black" @click="downloadJson">Export backup</button>
-          <button class="rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="fileInput?.click()">Import backup</button>
-          <button class="rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="downloadDatabase">Export .sqlite</button>
-          <button class="rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="askSample">Load sample data</button>
+          <button class="flex items-center justify-center gap-1.5 rounded-xl bg-accent py-2.5 text-sm font-semibold text-white dark:text-black" @click="downloadJson"><ArrowDownTrayIcon class="size-4" aria-hidden="true" />Export backup</button>
+          <button class="flex items-center justify-center gap-1.5 rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="fileInput?.click()"><ArrowUpTrayIcon class="size-4" aria-hidden="true" />Import backup</button>
+          <button class="flex items-center justify-center gap-1.5 rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="downloadDatabase"><CircleStackIcon class="size-4" aria-hidden="true" />Export .sqlite</button>
+          <button class="flex items-center justify-center gap-1.5 rounded-xl bg-raised py-2.5 text-sm font-semibold text-accent ring-1 ring-line" @click="askSample"><SparklesIcon class="size-4" aria-hidden="true" />Load sample data</button>
         </div>
         <p class="text-xs text-ink-3">Import takes a JSON backup or a .sqlite file. The .sqlite export opens in any SQLite tool.</p>
         <input ref="fileInput" type="file" accept="application/json,.json,.sqlite,.sqlite3,.db" class="hidden" @change="pick">

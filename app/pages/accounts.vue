@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowsRightLeftIcon, PencilSquareIcon, PlusIcon } from '@heroicons/vue/20/solid'
 import type { Account, AccountType } from '~/utils/db'
 
 const { month } = useMonth()
@@ -85,8 +86,8 @@ async function saveValue(id: number) {
         <p class="text-sm text-ink-2">Everything you have, and how much you put aside.</p>
       </div>
       <div class="flex gap-2">
-        <NuxtLink to="/add?kind=transfer&back=accounts" class="rounded-xl bg-accent px-3.5 py-2 text-sm font-semibold text-white transition hover:brightness-110 dark:text-black">Move money</NuxtLink>
-        <button class="card px-3.5 py-2 text-sm font-semibold text-accent transition hover:bg-raised" @click="open()">+ Account</button>
+        <NuxtLink to="/add?kind=transfer&back=accounts" class="flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-semibold text-white transition hover:brightness-110 dark:text-black"><ArrowsRightLeftIcon class="size-4" aria-hidden="true" />Move money</NuxtLink>
+        <button class="card flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-accent transition hover:bg-raised" @click="open()"><PlusIcon class="size-4" aria-hidden="true" />Account</button>
       </div>
     </div>
 
@@ -149,7 +150,7 @@ async function saveValue(id: number) {
                   <p class="text-xs text-ink-3">{{ typeLabel(r.account.type) }}</p>
                 </div>
               </div>
-              <button class="rounded-lg px-2 py-1 text-xs text-ink-3 transition hover:bg-raised hover:text-ink" @click="open(r.account)">Edit</button>
+              <button class="rounded-lg p-1.5 text-ink-3 transition hover:bg-raised hover:text-ink" :aria-label="`Edit ${r.account.name}`" title="Edit" @click="open(r.account)"><PencilSquareIcon class="size-4" aria-hidden="true" /></button>
             </div>
             <p class="mt-3 text-2xl font-semibold tracking-tight" :class="r.value < 0 ? 'text-critical' : ''">{{ money(r.value) }}</p>
 

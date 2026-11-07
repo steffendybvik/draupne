@@ -13,6 +13,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "@sqlite.org/sqlite-wasm": "^3.54.1-build1",
     "nuxt": "^4.6.4",
     "vue": "^3.5.45",

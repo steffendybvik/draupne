@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlusIcon } from '@heroicons/vue/20/solid'
 const route = useRoute()
 const isMac = import.meta.client && /Mac|iPhone|iPad/.test(navigator.platform)
 </script>
@@ -15,7 +16,7 @@ const isMac = import.meta.client && /Mac|iPhone|iPad/.test(navigator.platform)
       class="mb-4 flex items-center justify-between rounded-xl bg-accent px-3 py-2.5 text-sm font-semibold text-white shadow-sm shadow-accent/30 transition hover:brightness-110 active:scale-[0.98] dark:text-black"
     >
       <span class="flex items-center gap-2">
-        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        <PlusIcon class="size-4" aria-hidden="true" />
         New transaction
       </span>
       <kbd class="rounded bg-white/20 px-1.5 text-[11px] font-medium dark:bg-black/15">N</kbd>
@@ -28,7 +29,7 @@ const isMac = import.meta.client && /Mac|iPhone|iPad/.test(navigator.platform)
       class="group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition"
       :class="route.path === tab.to ? 'bg-accent/10 font-medium text-accent' : 'text-ink-2 hover:bg-ink/5 hover:text-ink'"
     >
-      <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path :d="tab.icon" /></svg>
+      <component :is="route.path === tab.to ? tab.active : tab.icon" class="size-5" aria-hidden="true" />
       <span class="flex-1">{{ tab.label }}</span>
       <kbd class="text-[11px] text-ink-3 opacity-0 transition group-hover:opacity-100">{{ isMac ? '⌘' : 'Ctrl ' }}{{ i + 1 }}</kbd>
     </NuxtLink>
