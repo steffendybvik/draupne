@@ -42,13 +42,28 @@ const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'position'>[] = [
   { name: 'Bills', emoji: '🧾', kind: 'expense', budget: null },
   { name: 'Subscriptions', emoji: '🔁', kind: 'expense', budget: null },
   { name: 'Shopping', emoji: '🛍️', kind: 'expense', budget: null },
+  { name: 'Gifts', emoji: '🎁', kind: 'expense', budget: null },
+  { name: 'Electronics', emoji: '💻', kind: 'expense', budget: null },
+  { name: 'Hardware', emoji: '🛠️', kind: 'expense', budget: null },
+  { name: 'Furniture', emoji: '🛋️', kind: 'expense', budget: null },
   { name: 'Health', emoji: '💊', kind: 'expense', budget: null },
   { name: 'Fun', emoji: '🎉', kind: 'expense', budget: null },
   { name: 'Travel', emoji: '✈️', kind: 'expense', budget: null },
+  { name: 'Work', emoji: '💼', kind: 'expense', budget: null },
   { name: 'Other', emoji: '📦', kind: 'expense', budget: null },
-  { name: 'Salary', emoji: '💼', kind: 'income', budget: null },
+  { name: 'Salary', emoji: '💶', kind: 'income', budget: null },
   { name: 'Other income', emoji: '💰', kind: 'income', budget: null },
 ]
+
+// v2 adds Gifts, Electronics, Hardware, Furniture and Work to databases made before they existed.
+db.version(2).stores({}).upgrade(async (tx) => {
+  const table = tx.table<Category, number>('categories')
+  const existing = await table.toArray()
+  const names = new Set(existing.map((c) => c.name.toLowerCase()))
+  let position = Math.max(-1, ...existing.map((c) => c.position)) + 1
+  const missing = DEFAULT_CATEGORIES.filter((c) => c.kind === 'expense' && !names.has(c.name.toLowerCase()))
+  await table.bulkAdd(missing.map((c) => ({ ...c, position: position++ })) as Category[])
+})
 
 db.on('populate', (tx) => {
   tx.table('categories').bulkAdd(DEFAULT_CATEGORIES.map((c, position) => ({ ...c, position })))
