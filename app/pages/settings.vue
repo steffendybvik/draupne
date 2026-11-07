@@ -3,7 +3,8 @@ const { settings } = useSettings()
 const message = ref('')
 const failed = ref(false)
 const fileInput = ref<HTMLInputElement>()
-const confirmImport = ref<unknown>(null)
+// shallowRef: a deep reactive proxy of the parsed file can't be stored in IndexedDB (DataCloneError).
+const confirmImport = shallowRef<unknown>(null)
 
 const CURRENCIES = ['NOK', 'SEK', 'DKK', 'EUR', 'GBP', 'USD', 'CHF']
 
