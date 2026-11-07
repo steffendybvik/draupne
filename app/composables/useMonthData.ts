@@ -17,7 +17,13 @@ export function useMonthData() {
 
   const income = computed(() => sum(transactions.value.filter((t) => t.kind === 'income')))
   const spent = computed(() => sum(transactions.value.filter((t) => t.kind === 'expense')))
-  const left = computed(() => income.value - spent.value)
+  /** Moved into savings and investment accounts this month. */
+  const { putAside: putAsideIn, accountById } = useAccounts()
+  const putAside = computed(() => putAsideIn(month.value))
+  /** What's left after spending and putting money aside. */
+  const left = computed(() => income.value - spent.value - putAside.value.total)
+  /** Income minus spending: the month's profit or loss. */
+  const net = computed(() => income.value - spent.value)
 
   /** Expense categories with what was spent this month, largest first; unused ones last. */
   const byCategory = computed<CategoryTotal[]>(() => {
@@ -43,12 +49,12 @@ export function useMonthData() {
       let g = groups.at(-1)
       if (!g || g.date !== t.date) groups.push((g = { date: t.date, items: [], net: 0 }))
       g.items.push(t)
-      g.net += t.kind === 'income' ? t.amount : -t.amount
+      if (t.kind !== 'transfer') g.net += t.kind === 'income' ? t.amount : -t.amount
     }
     return groups
   })
 
-  return { month, categories, categoryById, transactions, income, spent, left, byCategory, days }
+  return { month, categories, categoryById, accountById, transactions, income, spent, putAside, left, net, byCategory, days }
 }
 
 function sum(list: Transaction[]) {

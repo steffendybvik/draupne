@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { categoryById, transactions, income, spent, left, byCategory, days } = useMonthData()
+const { categoryById, accountById, transactions, income, spent, putAside, left, byCategory, days } = useMonthData()
 const { money, moneyRound } = useSettings()
 
 const spending = computed(() => byCategory.value.filter((c) => c.spent > 0))
@@ -31,15 +31,20 @@ function dayLabel(date: string) {
       >
         {{ moneyRound(left) }}
       </p>
-      <div class="mt-4 grid grid-cols-2 gap-3">
+      <!-- Income → spent → put aside → left -->
+      <div class="mt-4 grid grid-cols-3 gap-2">
         <div class="rounded-2xl bg-raised p-3">
           <p class="text-xs text-ink-2">Income</p>
-          <p class="mt-0.5 text-lg font-semibold">{{ moneyRound(income) }}</p>
+          <p class="mt-0.5 truncate font-semibold md:text-lg">{{ moneyRound(income) }}</p>
         </div>
         <div class="rounded-2xl bg-raised p-3">
           <p class="text-xs text-ink-2">Spent</p>
-          <p class="mt-0.5 text-lg font-semibold">{{ moneyRound(spent) }}</p>
+          <p class="mt-0.5 truncate font-semibold md:text-lg">{{ moneyRound(spent) }}</p>
         </div>
+        <NuxtLink to="/accounts" class="rounded-2xl bg-raised p-3 transition hover:bg-line/60">
+          <p class="text-xs text-ink-2">Saved &amp; invested</p>
+          <p class="mt-0.5 truncate font-semibold md:text-lg">{{ moneyRound(putAside.total) }}</p>
+        </NuxtLink>
       </div>
     </section>
 
@@ -74,7 +79,7 @@ function dayLabel(date: string) {
       <div v-if="!days.length" class="card p-8 text-center">
         <p class="text-3xl">🧾</p>
         <p class="mt-2 font-medium">Nothing logged this month</p>
-        <p class="mt-1 text-sm text-ink-2">Tap + to add an expense or income.</p>
+        <p class="mt-1 text-sm text-ink-2">Tap + to add an expense, income or transfer.</p>
       </div>
 
       <div v-for="day in days" :key="day.date" class="mb-3">
@@ -85,16 +90,26 @@ function dayLabel(date: string) {
         <ul class="divide-y divide-line card overflow-hidden">
           <li v-for="t in day.items" :key="t.id">
             <NuxtLink :to="`/add?id=${t.id}`" class="flex items-center gap-3 px-4 py-3 hover:bg-raised active:bg-raised">
-              <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-raised text-lg">
-                {{ categoryById.get(t.categoryId)?.emoji ?? '❔' }}
-              </span>
-              <span class="min-w-0 flex-1">
-                <span class="block truncate font-medium">{{ t.note || categoryById.get(t.categoryId)?.name || 'Uncategorised' }}</span>
-                <span v-if="t.note" class="block truncate text-xs text-ink-3">{{ categoryById.get(t.categoryId)?.name }}</span>
-              </span>
-              <span class="shrink-0 font-medium tabular-nums" :class="t.kind === 'income' ? 'text-good-ink' : ''">
-                {{ t.kind === 'income' ? '+' : '−' }}{{ money(t.amount) }}
-              </span>
+              <template v-if="t.kind === 'transfer'">
+                <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-raised text-lg">{{ accountById.get(t.toAccountId ?? 0)?.emoji ?? '↔️' }}</span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate font-medium">{{ t.note || `To ${accountById.get(t.toAccountId ?? 0)?.name ?? 'account'}` }}</span>
+                  <span class="block truncate text-xs text-ink-3">{{ accountById.get(t.accountId)?.name }} → {{ accountById.get(t.toAccountId ?? 0)?.name }}</span>
+                </span>
+                <span class="shrink-0 font-medium text-ink-2 tabular-nums">{{ money(t.amount) }}</span>
+              </template>
+              <template v-else>
+                <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-raised text-lg">
+                  {{ categoryById.get(t.categoryId)?.emoji ?? '❔' }}
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate font-medium">{{ t.note || categoryById.get(t.categoryId)?.name || 'Uncategorised' }}</span>
+                  <span v-if="t.note" class="block truncate text-xs text-ink-3">{{ categoryById.get(t.categoryId)?.name }}</span>
+                </span>
+                <span class="shrink-0 font-medium tabular-nums" :class="t.kind === 'income' ? 'text-good-ink' : ''">
+                  {{ t.kind === 'income' ? '+' : '−' }}{{ money(t.amount) }}
+                </span>
+              </template>
             </NuxtLink>
           </li>
         </ul>

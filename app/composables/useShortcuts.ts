@@ -1,5 +1,5 @@
 /**
- * Desktop keyboard shortcuts: N add · ←/→ step months · ⌘/Ctrl 1–4 switch sections · Esc leaves Add.
+ * Desktop keyboard shortcuts: N add · ←/→ step months · ⌘/Ctrl 1–5 switch sections · Esc leaves Add.
  * Plain keys are ignored while typing in a field.
  */
 export function useShortcuts() {
@@ -11,7 +11,7 @@ export function useShortcuts() {
     const el = e.target as HTMLElement | null
     const typing = !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
 
-    if ((e.metaKey || e.ctrlKey) && /^[1-4]$/.test(e.key)) {
+    if ((e.metaKey || e.ctrlKey) && /^[1-5]$/.test(e.key)) {
       e.preventDefault()
       router.push(TABS[Number(e.key) - 1]!.to)
       return

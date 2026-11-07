@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Kind } from '~/utils/db'
+import type { CategoryKind } from '~/utils/db'
 
-const form = defineModel<{ name: string, emoji: string, budget: string, kind: Kind }>({ required: true })
+const form = defineModel<{ name: string, emoji: string, budget: string, kind: CategoryKind }>({ required: true })
 defineProps<{ uses?: number, confirmDelete?: boolean, isNew?: boolean }>()
 defineEmits<{ save: [], cancel: [], delete: [] }>()
 const { settings } = useSettings()

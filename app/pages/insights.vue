@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BreakdownRow } from '~/composables/useHistory'
 
-const { month, categories, categoryById, transactions, income, spent, left, byCategory } = useMonthData()
+const { month, categories, categoryById, transactions, income, spent, net: left, byCategory } = useMonthData()
 const { lastMonths, cumulativeSpent, spentByCategory, years } = useHistory()
 const { money, moneyRound, moneySigned } = useSettings()
 
@@ -75,7 +75,7 @@ function pctChange(now: number, before?: number) {
       <ChartsStatTile label="Spent" :value="moneyRound(spent)" :delta="spentDelta?.text" :tone="spentDelta?.tone" hint="Nothing last month to compare" />
       <ChartsStatTile label="Income" :value="moneyRound(income)" :hint="`${transactions.filter((t) => t.kind === 'income').length} payments`" />
       <ChartsStatTile
-        :label="left >= 0 ? 'Saved this month' : 'Overspent this month'"
+        :label="left >= 0 ? 'Surplus this month' : 'Overspent this month'"
         :value="moneySigned(left)"
         :delta="savingsRate !== null ? `${left >= 0 ? '▲' : '▼'} ${savingsRate}% of income` : undefined"
         :tone="left >= 0 ? 'good' : 'bad'"

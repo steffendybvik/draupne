@@ -4,13 +4,16 @@ import type { Category, Kind } from '~/utils/db'
 const route = useRoute()
 const router = useRouter()
 const { month } = useMonth()
+const { accounts } = useAccounts()
 
 const editingId = computed(() => (route.query.id ? Number(route.query.id) : null))
 const categories = useLiveQuery(null, () => db.categories.orderBy('position').toArray(), [] as Category[])
 
-const kind = ref<Kind>('expense')
+const kind = ref<Kind>(route.query.kind === 'transfer' ? 'transfer' : 'expense')
 const amountText = ref('')
 const categoryId = ref<number | null>(null)
+const accountId = ref<number | null>(null)
+const toAccountId = ref<number | null>(null)
 // New entries default to today, or the 1st of the month being viewed when that isn't this month.
 const date = ref(month.value === todayISO().slice(0, 7) ? todayISO() : `${month.value}-01`)
 const note = ref('')
@@ -20,22 +23,28 @@ const amountInput = ref<HTMLInputElement>()
 
 const amount = computed(() => parseAmount(amountText.value))
 const choices = computed(() => categories.value.filter((c) => c.kind === kind.value))
+const accountLabel = computed(() => (kind.value === 'income' ? 'Paid into' : kind.value === 'transfer' ? 'From' : 'Paid from'))
 
 watch(kind, () => {
   if (!choices.value.some((c) => c.id === categoryId.value)) categoryId.value = null
 })
 
 onMounted(async () => {
+  accountId.value = await defaultAccountId()
   if (editingId.value) {
     const t = await db.transactions.get(editingId.value)
     if (!t) return router.replace('/')
     kind.value = t.kind
     await nextTick()
     amountText.value = amountToInput(t.amount)
-    categoryId.value = t.categoryId
+    categoryId.value = t.categoryId || null
+    accountId.value = t.accountId
+    toAccountId.value = t.toAccountId ?? null
     date.value = t.date
     note.value = t.note
   } else {
+    // A transfer most often goes from spending to savings.
+    if (kind.value === 'transfer') toAccountId.value = (await db.accounts.where('type').equals('savings').first())?.id ?? null
     amountInput.value?.focus()
   }
 })
@@ -43,15 +52,30 @@ onMounted(async () => {
 async function save() {
   error.value = ''
   if (!amount.value) return (error.value = 'Enter an amount.')
-  if (!categoryId.value) return (error.value = 'Pick a category.')
+  if (!accountId.value) return (error.value = 'Pick an account.')
+  if (kind.value === 'transfer') {
+    if (!toAccountId.value) return (error.value = 'Pick the account the money goes to.')
+    if (toAccountId.value === accountId.value) return (error.value = 'Pick two different accounts.')
+  } else if (!categoryId.value) {
+    return (error.value = 'Pick a category.')
+  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date.value)) return (error.value = 'Pick a date.')
 
-  const data = { kind: kind.value, amount: amount.value, categoryId: categoryId.value, date: date.value, note: note.value.trim() }
+  const transfer = kind.value === 'transfer'
+  const data = {
+    kind: kind.value,
+    amount: amount.value,
+    categoryId: transfer ? 0 : categoryId.value!,
+    accountId: accountId.value,
+    toAccountId: transfer ? toAccountId.value : null,
+    date: date.value,
+    note: note.value.trim(),
+  }
   if (editingId.value) await db.transactions.update(editingId.value, data)
   else await db.transactions.add({ ...data, createdAt: Date.now() } as never)
 
   month.value = date.value.slice(0, 7)
-  router.push('/')
+  router.push(route.query.back === 'accounts' ? '/accounts' : '/')
 }
 
 async function remove() {
@@ -69,9 +93,9 @@ async function remove() {
       <button type="submit" class="-mr-2 rounded-full px-2 py-1 font-semibold text-accent">Save</button>
     </header>
 
-    <div class="grid grid-cols-2 rounded-full bg-line p-1 text-sm font-medium">
+    <div class="grid grid-cols-3 rounded-full bg-line p-1 text-sm font-medium">
       <button
-        v-for="k in (['expense', 'income'] as const)"
+        v-for="k in (['expense', 'income', 'transfer'] as const)"
         :key="k"
         type="button"
         class="rounded-full py-2 capitalize transition"
@@ -95,7 +119,7 @@ async function remove() {
       >
     </label>
 
-    <fieldset>
+    <fieldset v-if="kind !== 'transfer'">
       <legend class="mb-2 px-1 text-sm font-medium text-ink-2">Category</legend>
       <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
         <button
@@ -113,7 +137,20 @@ async function remove() {
       </div>
     </fieldset>
 
-    <div class="divide-y divide-line card overflow-hidden">
+    <div class="card divide-y divide-line overflow-hidden">
+      <label class="flex items-center justify-between gap-3 px-4 py-3">
+        <span class="text-ink-2">{{ accountLabel }}</span>
+        <select v-model="accountId" class="min-w-0 bg-transparent text-right outline-none">
+          <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.emoji }} {{ a.name }}</option>
+        </select>
+      </label>
+      <label v-if="kind === 'transfer'" class="flex items-center justify-between gap-3 px-4 py-3">
+        <span class="text-ink-2">To</span>
+        <select v-model="toAccountId" class="min-w-0 bg-transparent text-right outline-none">
+          <option :value="null" disabled>Pick an account</option>
+          <option v-for="a in accounts" :key="a.id" :value="a.id" :disabled="a.id === accountId">{{ a.emoji }} {{ a.name }}</option>
+        </select>
+      </label>
       <label class="flex items-center justify-between gap-3 px-4 py-3">
         <span class="text-ink-2">Date</span>
         <input v-model="date" type="date" required class="bg-transparent text-right outline-none">
@@ -123,6 +160,10 @@ async function remove() {
         <input v-model="note" placeholder="Optional" class="min-w-0 flex-1 bg-transparent text-right outline-none placeholder:text-ink-3">
       </label>
     </div>
+
+    <p v-if="kind === 'transfer'" class="px-1 text-xs text-ink-3">
+      Moving money between your own accounts isn't spending or income: it shows as saved or invested when it goes into a savings or investment account.
+    </p>
 
     <p v-if="error" role="alert" class="px-1 text-sm text-critical">{{ error }}</p>
 

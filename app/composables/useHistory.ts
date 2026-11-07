@@ -37,6 +37,8 @@ export function useHistory() {
   const byMonth = computed(() => {
     const map = new Map<string, MonthTotals>()
     for (const t of all.value) {
+      // Transfers move money between your own accounts: neither income nor spending.
+      if (t.kind === 'transfer') continue
       const month = t.date.slice(0, 7)
       let row = map.get(month)
       if (!row) map.set(month, (row = { month, income: 0, spent: 0, net: 0, count: 0 }))

@@ -15,7 +15,7 @@ const route = useRoute()
 
     <!-- A floating frosted bar, like the system's own tab bars. -->
     <nav class="fixed inset-x-3 bottom-[max(env(safe-area-inset-bottom),0.75rem)] z-20 mx-auto max-w-md rounded-2xl border border-line/70 bg-card/80 shadow-lg shadow-black/5 backdrop-blur-xl">
-      <div class="grid grid-cols-4 py-1.5">
+      <div class="grid grid-cols-5 py-1.5">
         <NuxtLink
           v-for="tab in TABS"
           :key="tab.to"

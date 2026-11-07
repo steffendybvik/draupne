@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Category, Kind } from '~/utils/db'
+import type { Category, CategoryKind } from '~/utils/db'
 
 const { categories, byCategory, spent } = useMonthData()
 const { moneyRound } = useSettings()
@@ -18,10 +18,10 @@ const incomeCategories = computed(() => categories.value.filter((c) => c.kind ==
 
 // One category open for editing at a time.
 const editing = ref<number | 'new' | null>(null)
-const form = reactive({ name: '', emoji: '', budget: '', kind: 'expense' as Kind })
+const form = reactive({ name: '', emoji: '', budget: '', kind: 'expense' as CategoryKind })
 const confirmDelete = ref(false)
 
-function open(c?: Category, kind: Kind = 'expense') {
+function open(c?: Category, kind: CategoryKind = 'expense') {
   confirmDelete.value = false
   editing.value = c?.id ?? 'new'
   form.name = c?.name ?? ''

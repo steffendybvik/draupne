@@ -1,6 +1,8 @@
 // Writes a Draupne backup with made-up data to import from Settings → Import backup.
 // September 2025 up to today, in EUR, on a €5,500 net monthly salary: most months save money,
 // a few cost more than came in (Christmas, a broken laptop and car, the summer holiday, a dentist bill).
+// Three accounts: spending, savings and an ETF account. After payday €600 goes to savings and €400 is invested;
+// savings pay for the summer holiday, and the investments are valued at each month's end.
 // Usage: node scripts/sample-backup.mjs [out.json]
 import fs from 'node:fs'
 
@@ -14,6 +16,13 @@ const names = [
 ]
 const categories = names.map(([name, emoji, kind, budget], i) => ({ id: i + 1, name, emoji, kind, budget: budget && budget * 100, position: i }))
 const C = Object.fromEntries(categories.map((c) => [c.name, c.id]))
+const accounts = [
+  { id: 1, name: 'Spending account', emoji: '💳', type: 'spending', opening: 240000, position: 0 },
+  { id: 2, name: 'Savings', emoji: '🏦', type: 'savings', opening: 800000, position: 1 },
+  { id: 3, name: 'ETF portfolio', emoji: '📈', type: 'investment', opening: 500000, position: 2 },
+]
+const valuations = []
+let portfolio = 5000
 
 let seed = 11
 const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
@@ -31,7 +40,11 @@ for (let d = new Date(2025, 8, 1); d <= today; d = new Date(d.getFullYear(), d.g
   const day = () => 1 + Math.floor(rnd() * last)
   const add = (cat, eur, dd, note = '', kind = 'expense') => {
     if (dd > last) return
-    transactions.push({ id: transactions.length + 1, kind, amount: Math.round(eur * 100), categoryId: C[cat], date: `${ym}-${pad(dd)}`, note, createdAt: Date.UTC(y, mon, dd) + transactions.length })
+    transactions.push({ id: transactions.length + 1, kind, amount: Math.round(eur * 100), categoryId: C[cat], accountId: 1, date: `${ym}-${pad(dd)}`, note, createdAt: Date.UTC(y, mon, dd) + transactions.length })
+  }
+  const move = (from, to, eur, dd, note) => {
+    if (dd > last) return
+    transactions.push({ id: transactions.length + 1, kind: 'transfer', amount: Math.round(eur * 100), categoryId: 0, accountId: from, toAccountId: to, date: `${ym}-${pad(dd)}`, note, createdAt: Date.UTC(y, mon, dd) + transactions.length })
   }
   const winter = mon >= 10 || mon <= 2
 
@@ -39,6 +52,11 @@ for (let d = new Date(2025, 8, 1); d <= today; d = new Date(d.getFullYear(), d.g
   add('Salary', 5500, 25, 'Salary', 'income')
   if (mon === 11) add('Other income', 1200, 15, 'Christmas bonus', 'income')
   if (rnd() < 0.25) add('Other income', r(40, 250), day(), 'Sold on Marketplace', 'income')
+
+  // Pay yourself first: savings and investing the day after payday.
+  move(1, 2, 600, 26, 'Monthly saving')
+  move(1, 3, 400, 26, 'Monthly ETF buy')
+  if (mon === 5) move(2, 1, 1500, 28, 'Holiday money from savings')
 
   // Fixed monthly costs
   add('Housing', 1650, 1, 'Rent')
@@ -71,9 +89,16 @@ for (let d = new Date(2025, 8, 1); d <= today; d = new Date(d.getFullYear(), d.g
   if (mon === 6) { add('Travel', 2900, 5, 'Summer holiday'); add('Eating out', 520, 12, 'Holiday dinners') }
   if (mon === 7) add('Furniture', 620, 24, 'Bookshelf & lamp')
   if (mon === 9 && y === 2026) { add('Health', 1850, 8, 'Dentist'); add('Fun', 950, 17, 'Wedding weekend') }
+
+  // Month-end portfolio value: last month's value grows (or dips) by the market, plus this month's buy.
+  if (!isNow) {
+    const market = [0.012, 0.018, -0.024, 0.021, 0.009, -0.041, 0.027, 0.015, 0.011, 0.019, -0.012, 0.024, 0.008, 0.016, 0.01][transactions.length % 15]
+    portfolio = portfolio * (1 + market) + 400
+    valuations.push({ id: valuations.length + 1, accountId: 3, date: `${ym}-${pad(last)}`, value: Math.round(portfolio * 100) })
+  }
 }
 
-const backup = { app: 'draupne', version: 1, exportedAt: new Date().toISOString(), categories, transactions }
+const backup = { app: 'draupne', version: 2, exportedAt: new Date().toISOString(), categories, transactions, accounts, valuations }
 const out = process.argv[2] ?? 'draupne-sample.json'
 fs.writeFileSync(out, JSON.stringify(backup, null, 2))
 
@@ -81,7 +106,8 @@ fs.writeFileSync(out, JSON.stringify(backup, null, 2))
 const months = {}
 for (const t of transactions) {
   const m = (months[t.date.slice(0, 7)] ??= { income: 0, spent: 0 })
+  if (t.kind === 'transfer') continue
   m[t.kind === 'income' ? 'income' : 'spent'] += t.amount
 }
 for (const [m, v] of Object.entries(months)) console.log(m, `in €${v.income / 100}`.padEnd(12), `out €${Math.round(v.spent / 100)}`.padEnd(11), `net €${Math.round((v.income - v.spent) / 100)}`)
-console.log(`${transactions.length} transactions → ${out}`)
+console.log(`${transactions.length} transactions, portfolio ≈ €${Math.round(portfolio)} → ${out}`)
