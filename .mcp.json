@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "orrery-personal": {
+      "command": "node",
+      "args": ["${HOME}/.orrery/bootstrap.mjs", "channel"],
+      "env": {
+        "ORRERY_URL": "http://localhost:9010",
+        "ORRERY_ID": "orr_70840e",
+        "ORRERY_PROJECTS": "draupne",
+        "ORRERY_PERSON": "${ORRERY_PERSON:-}"
+      }
+    }
+  }
+}

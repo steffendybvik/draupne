@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Light/dark follow the device. Tokens are roles, not raw colors. */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", sans-serif;
+
+  --color-surface: #fcfcfb;
+  --color-card: #ffffff;
+  --color-line: #e7e6e2;
+  --color-ink: #0b0b0b;
+  --color-ink-2: #52514e;
+  --color-ink-3: #8a8984;
+
+  --color-accent: #1c5cab;
+  --color-accent-soft: #cde2fb;
+  --color-bar: #2a78d6;
+  --color-track: #e3eefc;
+
+  --color-good: #0ca30c;
+  --color-good-ink: #006300;
+  --color-warning: #fab219;
+  --color-critical: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #121211;
+    --color-card: #1a1a19;
+    --color-line: #2c2c2a;
+    --color-ink: #f0efec;
+    --color-ink-2: #c3c2b7;
+    --color-ink-3: #8f8e86;
+
+    --color-accent: #6da7ec;
+    --color-accent-soft: #184f95;
+    --color-bar: #3987e5;
+    --color-track: #1f3350;
+
+    --color-good-ink: #4cc54c;
+  }
+}
+
+html {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+  color-scheme: light dark;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+.pt-safe { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
